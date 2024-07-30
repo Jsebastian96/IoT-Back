@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-require('dotenv').config();  
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -41,6 +41,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+app.get('/', (req, res) => {
+  res.send('Servidor funcionando correctamente');
+});
+
 app.post('/gps', async (req, res) => {
   const { latitude, longitude } = req.body;
   const gpsData = new GpsData({ latitude, longitude });
@@ -48,7 +52,8 @@ app.post('/gps', async (req, res) => {
     await gpsData.save();
     res.status(201).send({ message: 'Datos GPS guardados correctamente' });
   } catch (err) {
-    res.status(400).send({ error: 'Error al guardar los datos GPS' });
+    console.error('Error al guardar los datos GPS:', err);
+    res.status(401).send({ error: 'Error al guardar los datos GPS', details: err.message });
   }
 });
 
@@ -66,7 +71,8 @@ app.post('/image', upload.single('image'), async (req, res) => {
     await gpsData.save();
     res.status(201).send({ message: 'Imagen y datos GPS guardados correctamente' });
   } catch (err) {
-    res.status(400).send({ error: 'Error al guardar la imagen y datos GPS' });
+    console.error('Error al guardar la imagen y datos GPS:', err);
+    res.status(401).send({ error: 'Error al guardar la imagen y datos GPS', details: err.message });
   }
 });
 
