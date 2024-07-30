@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -21,14 +22,14 @@ mongoose.connect(mongoUri, {
   console.error('Error al conectar a MongoDB Atlas', err);
 });
 
-const gpsDataSchema = new mongoose.Schema({
+const reporteSchema = new mongoose.Schema({
   latitude: Number,
   longitude: Number,
   timestamp: { type: Date, default: Date.now },
-  imagePath: String
+  image: String  // Almacena la imagen en base64
 });
 
-const GpsData = mongoose.model('GpsData', gpsDataSchema);
+const Reporte = mongoose.model('Reporte', reporteSchema);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -47,13 +48,13 @@ app.get('/', (req, res) => {
 
 app.post('/gps', async (req, res) => {
   const { latitude, longitude } = req.body;
-  const gpsData = new GpsData({ latitude, longitude });
+  const reporte = new Reporte({ latitude, longitude });
   try {
-    await gpsData.save();
+    await reporte.save();
     res.status(201).send({ message: 'Datos GPS guardados correctamente' });
   } catch (err) {
     console.error('Error al guardar los datos GPS:', err);
-    res.status(401).send({ error: 'Error al guardar los datos GPS', details: err.message });
+    res.status(400).send({ error: 'Error al guardar los datos GPS', details: err.message });
   }
 });
 
@@ -61,18 +62,20 @@ app.post('/image', upload.single('image'), async (req, res) => {
   const { latitude, longitude } = req.body;
   const imagePath = req.file.path;
 
-  const gpsData = new GpsData({
-    latitude: parseFloat(latitude),
-    longitude: parseFloat(longitude),
-    imagePath: imagePath
-  });
-
   try {
-    await gpsData.save();
+    const image = fs.readFileSync(imagePath, { encoding: 'base64' });
+    const reporte = new Reporte({
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+      image: image
+    });
+
+    await reporte.save();
+    fs.unlinkSync(imagePath); // Elimina el archivo local después de convertirlo a base64
     res.status(201).send({ message: 'Imagen y datos GPS guardados correctamente' });
   } catch (err) {
     console.error('Error al guardar la imagen y datos GPS:', err);
-    res.status(401).send({ error: 'Error al guardar la imagen y datos GPS', details: err.message });
+    res.status(400).send({ error: 'Error al guardar la imagen y datos GPS', details: err.message });
   }
 });
 

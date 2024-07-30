@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 import time
 import urllib.request
+import base64
 import requests
 
 # URL de la cámara IP Webcam para capturar snapshots
 camera_ip = 'http://100.80.135.214:8080/shot.jpg'
-server_url = 'https://<tu_proyecto_railway>.railway.app/image'  # URL del servidor en Railway para recibir imágenes
+server_url = 'https://iot-back-production.up.railway.app/image'  # URL del servidor para recibir imágenes
 
 latitude = None
 longitude = None
@@ -56,7 +57,13 @@ def capture_and_process_image():
 
                 if latitude and longitude:
                     with open(image_filename, 'rb') as img_file:
-                        response = requests.post(server_url, files={'image': img_file}, data={'latitude': latitude, 'longitude': longitude})
+                        image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+                        data = {
+                            'latitude': latitude,
+                            'longitude': longitude,
+                            'image': image_base64
+                        }
+                        response = requests.post(server_url, json=data)
                         print(response.status_code, response.text)
 
             else:
