@@ -1,84 +1,46 @@
+require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-require('dotenv').config();
-
+const { Configuration, OpenAIApi } = require('openai');
 const app = express();
-const port = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Configurar multer para subir archivos
+const upload = multer({ storage: multer.memoryStorage() });
 
-const mongoUri = process.env.MONGO_URL;
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log('Conectado a MongoDB Atlas');
-}).catch(err => {
-  console.error('Error al conectar a MongoDB Atlas', err);
+// Configurar MongoDB
+mongoose.connect('mongodb://localhost:27017/imagenes', { useNewUrlParser: true, useUnifiedTopology: true });
+const imageSchema = new mongoose.Schema({ data: Buffer, contentType: String });
+const Image = mongoose.model('Image', imageSchema);
+
+// Configurar OpenAI API
+const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAIApi(configuration);
+
+// Endpoint para subir imágenes
+app.post('/upload', upload.single('image'), async (req, res) => {
+    const newImage = new Image({ data: req.file.buffer, contentType: req.file.mimetype });
+    await newImage.save();
+    res.send('Imagen subida y guardada en MongoDB');
 });
 
-const reporteSchema = new mongoose.Schema({
-  latitude: Number,
-  longitude: Number,
-  timestamp: { type: Date, default: Date.now },
-  image: String  // Almacena la imagen en base64
+// Endpoint para recuperar imágenes
+app.get('/images', async (req, res) => {
+    const images = await Image.find();
+    res.json(images);
 });
 
-const Reporte = mongoose.model('Reporte', reporteSchema);
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
-
-app.get('/', (req, res) => {
-  res.send('Servidor funcionando correctamente');
-});
-
-app.post('/gps', async (req, res) => {
-  const { latitude, longitude } = req.body;
-  const reporte = new Reporte({ latitude, longitude });
-  try {
-    await reporte.save();
-    res.status(201).send({ message: 'Datos GPS guardados correctamente' });
-  } catch (err) {
-    console.error('Error al guardar los datos GPS:', err);
-    res.status(400).send({ error: 'Error al guardar los datos GPS', details: err.message });
-  }
-});
-
-app.post('/image', upload.single('image'), async (req, res) => {
-  const { latitude, longitude } = req.body;
-  const imagePath = req.file.path;
-
-  try {
-    const image = fs.readFileSync(imagePath, { encoding: 'base64' });
-    const reporte = new Reporte({
-      latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude),
-      image: image
+// Endpoint para analizar una imagen
+app.post('/analyze/:id', async (req, res) => {
+    const image = await Image.findById(req.params.id);
+    const response = await openai.createCompletion({
+        model: 'text-davinci-003',
+        prompt: `Analiza la siguiente imagen y proporciona un informe detallado: ${image.data.toString('base64')}`,
+        max_tokens: 500,
     });
-
-    await reporte.save();
-    fs.unlinkSync(imagePath); // Elimina el archivo local después de convertirlo a base64
-    res.status(201).send({ message: 'Imagen y datos GPS guardados correctamente' });
-  } catch (err) {
-    console.error('Error al guardar la imagen y datos GPS:', err);
-    res.status(400).send({ error: 'Error al guardar la imagen y datos GPS', details: err.message });
-  }
+    res.send(response.data.choices[0].text);
 });
 
-app.listen(port, () => {
-  console.log(`Servidor escuchando en el puerto ${port}`);
+app.listen(3000, () => {
+    console.log('Servidor iniciado en http://localhost:3000');
 });
