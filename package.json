@@ -1,7 +1,14 @@
 {
-  "name": "pothole_detection_server",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.5.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^3.0.0"
+  },
+  "name": "iot-back",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -9,12 +16,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "body-parser": "^1.20.2",
-    "dotenv": "^10.0.0",
-    "express": "^4.19.2",
-    "mongoose": "^8.5.2",
-    "multer": "^1.4.5-lts.1"
-  },
   "description": ""
 }

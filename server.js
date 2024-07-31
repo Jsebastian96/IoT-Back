@@ -3,39 +3,60 @@ const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const { Configuration, OpenAIApi } = require('openai');
+const bodyParser = require('body-parser');
+
 const app = express();
+app.use(bodyParser.json());
 
 // Configurar multer para subir archivos
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Configurar MongoDB
-mongoose.connect('mongodb://localhost:27017/imagenes', { useNewUrlParser: true, useUnifiedTopology: true });
-const imageSchema = new mongoose.Schema({ data: Buffer, contentType: String });
-const Image = mongoose.model('Image', imageSchema);
+const mongoUrl = process.env.MONGO_URL;
+mongoose.connect(mongoUrl, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+const reporteSchema = new mongoose.Schema({
+  latitude: Number,
+  longitude: Number,
+  timestamp: { type: Date, default: Date.now },
+  image: String  // Almacena la imagen en base64
+});
+const Reporte = mongoose.model('Reporte', reporteSchema);
 
 // Configurar OpenAI API
-const configuration = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
+const configuration = new Configuration({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 const openai = new OpenAIApi(configuration);
 
-// Endpoint para subir imágenes
+// Endpoint para subir imágenes con latitud y longitud
 app.post('/upload', upload.single('image'), async (req, res) => {
-    const newImage = new Image({ data: req.file.buffer, contentType: req.file.mimetype });
-    await newImage.save();
+    const { latitude, longitude } = req.body;
+    const image = req.file.buffer.toString('base64');
+    const newReporte = new Reporte({ latitude, longitude, image });
+    await newReporte.save();
     res.send('Imagen subida y guardada en MongoDB');
 });
 
-// Endpoint para recuperar imágenes
-app.get('/images', async (req, res) => {
-    const images = await Image.find();
-    res.json(images);
+// Endpoint para recuperar reportes
+app.get('/reportes', async (req, res) => {
+    const reportes = await Reporte.find();
+    res.json(reportes);
 });
 
 // Endpoint para analizar una imagen
 app.post('/analyze/:id', async (req, res) => {
-    const image = await Image.findById(req.params.id);
+    const reporte = await Reporte.findById(req.params.id);
+    if (!reporte) {
+        return res.status(404).send('Reporte no encontrado');
+    }
+
+    const prompt = `Analiza la siguiente imagen y proporciona un informe detallado: ${reporte.image}`;
     const response = await openai.createCompletion({
         model: 'text-davinci-003',
-        prompt: `Analiza la siguiente imagen y proporciona un informe detallado: ${image.data.toString('base64')}`,
+        prompt: prompt,
         max_tokens: 500,
     });
     res.send(response.data.choices[0].text);
