@@ -8,6 +8,10 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
+// Verificar que las variables de entorno se cargaron correctamente
+console.log('MONGO_URL:', process.env.MONGO_URL);
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY);
+
 // Configurar multer para subir archivos
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -16,13 +20,19 @@ const mongoUrl = process.env.MONGO_URL;
 mongoose.connect(mongoUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true
+}).then(() => {
+  console.log('Conectado a MongoDB Atlas');
+}).catch(err => {
+  console.error('Error al conectar a MongoDB Atlas', err);
 });
+
 const reporteSchema = new mongoose.Schema({
   latitude: Number,
   longitude: Number,
   timestamp: { type: Date, default: Date.now },
   image: String  // Almacena la imagen en base64
 });
+
 const Reporte = mongoose.model('Reporte', reporteSchema);
 
 // Configurar OpenAI API
