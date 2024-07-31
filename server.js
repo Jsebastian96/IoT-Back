@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
@@ -9,14 +8,19 @@ const app = express();
 app.use(bodyParser.json());
 
 // Verificar que las variables de entorno se cargaron correctamente
-console.log('MONGO_URL:', process.env.MONGO_URL);
-console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY);
+console.log('MONGO_URL:', process.env.MONGO_URL || 'No se encontró');
+console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY || 'No se encontró');
 
 // Configurar multer para subir archivos
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Configurar MongoDB
 const mongoUrl = process.env.MONGO_URL;
+if (!mongoUrl) {
+  console.error('Falta la variable de entorno MONGO_URL');
+  process.exit(1);
+}
+
 mongoose.connect(mongoUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -36,8 +40,14 @@ const reporteSchema = new mongoose.Schema({
 const Reporte = mongoose.model('Reporte', reporteSchema);
 
 // Configurar OpenAI API
+const openaiApiKey = process.env.OPENAI_API_KEY;
+if (!openaiApiKey) {
+  console.error('Falta la variable de entorno OPENAI_API_KEY');
+  process.exit(1);
+}
+
 const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: openaiApiKey,
 });
 const openai = new OpenAIApi(configuration);
 
