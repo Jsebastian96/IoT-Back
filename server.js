@@ -1,102 +1,75 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const { Configuration, OpenAIApi } = require('openai');
-const bodyParser = require('body-parser');
-
 const app = express();
-app.use(bodyParser.json());
-
-// Verificar que las variables de entorno se cargaron correctamente
-console.log('MONGO_URL:', process.env.MONGO_URL || 'No se encontró');
-console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY || 'No se encontró');
 
 // Configurar multer para subir archivos
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Configurar MongoDB
 const mongoUrl = process.env.MONGO_URL;
-if (!mongoUrl) {
-  console.error('Falta la variable de entorno MONGO_URL');
-  process.exit(1);
-}
-
-mongoose.connect(mongoUrl)
-  .then(() => {
-    console.log('Conectado a MongoDB Atlas');
-  })
-  .catch(err => {
-    console.error('Error al conectar a MongoDB Atlas:', err);
-    process.exit(1); // Terminar si no se puede conectar a MongoDB
-  });
-
-const reporteSchema = new mongoose.Schema({
-  latitude: Number,
-  longitude: Number,
-  timestamp: { type: Date, default: Date.now },
-  image: String  // Almacena la imagen en base64
+mongoose.connect(mongoUrl, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('Conectado a MongoDB Atlas'))
+.catch(err => {
+    console.error('Error al conectar a MongoDB Atlas:', err.message);
+    process.exit(1);
 });
 
-const Reporte = mongoose.model('Reporte', reporteSchema);
+// Definir el esquema de la imagen
+const imageSchema = new mongoose.Schema({
+    data: Buffer,
+    contentType: String,
+    latitude: Number,
+    longitude: Number
+});
+const Image = mongoose.model('Image', imageSchema);
 
 // Configurar OpenAI API
-const openaiApiKey = process.env.OPENAI_API_KEY;
-if (!openaiApiKey) {
-  console.error('Falta la variable de entorno OPENAI_API_KEY');
-  process.exit(1);
-}
-
 const configuration = new Configuration({
-  apiKey: openaiApiKey,
+    apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-// Endpoint para subir imágenes con latitud y longitud
+// Endpoint para subir imágenes
 app.post('/upload', upload.single('image'), async (req, res) => {
-  const { latitude, longitude } = req.body;
-  const image = req.file.buffer.toString('base64');
-  const newReporte = new Reporte({ latitude, longitude, image });
-  try {
-    await newReporte.save();
+    const newImage = new Image({
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+        latitude: req.body.latitude,
+        longitude: req.body.longitude
+    });
+    await newImage.save();
     res.send('Imagen subida y guardada en MongoDB');
-  } catch (err) {
-    console.error('Error al guardar los datos:', err);
-    res.status(500).send('Error al guardar los datos');
-  }
 });
 
-// Endpoint para recuperar reportes
+// Endpoint para recuperar imágenes
 app.get('/reportes', async (req, res) => {
-  try {
-    const reportes = await Reporte.find();
-    res.json(reportes);
-  } catch (err) {
-    console.error('Error al recuperar los reportes:', err);
-    res.status(500).send('Error al recuperar los reportes');
-  }
+    const images = await Image.find();
+    res.json(images);
 });
 
 // Endpoint para analizar una imagen
 app.post('/analyze/:id', async (req, res) => {
-  try {
-    const reporte = await Reporte.findById(req.params.id);
-    if (!reporte) {
-      return res.status(404).send('Reporte no encontrado');
+    try {
+        const image = await Image.findById(req.params.id);
+        const response = await openai.createCompletion({
+            model: 'text-davinci-003',
+            prompt: `Analiza la siguiente imagen y proporciona un informe detallado: ${image.data.toString('base64')}`,
+            max_tokens: 500,
+        });
+        res.send(response.data.choices[0].text);
+    } catch (error) {
+        console.error('Error al analizar la imagen:', error);
+        res.status(500).send('Error al analizar la imagen');
     }
-
-    const prompt = `Analiza la siguiente imagen y proporciona un informe detallado: ${reporte.image}`;
-    const response = await openai.createCompletion({
-      model: 'text-davinci-003',
-      prompt: prompt,
-      max_tokens: 500,
-    });
-    res.send(response.data.choices[0].text);
-  } catch (err) {
-    console.error('Error al analizar la imagen:', err);
-    res.status(500).send('Error al analizar la imagen');
-  }
 });
 
-app.listen(3000, () => {
-  console.log('Servidor iniciado en http://localhost:3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor iniciado en http://localhost:${PORT}`);
 });
