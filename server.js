@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const app = express();
 
 // Conexión a MongoDB
-const MONGO_URL = "mongodb+srv://juanm:369@cluster0.ff92cnc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 mongoose.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Middleware
