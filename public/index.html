@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informes</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        img {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Informes</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Imagen</th>
+                <th>Latitud</th>
+                <th>Longitud</th>
+            </tr>
+        </thead>
+        <tbody id="informes-table-body">
+        </tbody>
+    </table>
+    <script>
+        async function fetchInformes() {
+            const response = await fetch('/informes');
+            const informes = await response.json();
+            const tableBody = document.getElementById('informes-table-body');
+            informes.forEach(informe => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${informe.timestamp}</td>
+                    <td><img src="data:image/jpeg;base64,${informe.image_base64}" alt="Imagen del informe"></td>
+                    <td>${informe.latitude}</td>
+                    <td>${informe.longitude}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        fetchInformes();
+    </script>
+</body>
+</html>
