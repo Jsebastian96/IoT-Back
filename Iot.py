@@ -13,10 +13,10 @@ serial_port = 'COM3'  # Cambia esto al puerto correcto
 baud_rate = 115200
 
 # Configuración de MongoDB
-MONGO_URL = "mongodb+srv://juanm:369@cluster0.ff92cnc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+MONGO_URL = "mongodb+srv://juanm:369@cluster0.ff92cnc.mongodb.net/?retryWrites=true&w=majority&appName=test"
 client = MongoClient(MONGO_URL)
-db = client['Cluster0']
-collection = db['Informe']
+db = client['test']
+collection = db['informes']
 
 def detect_pothole(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
