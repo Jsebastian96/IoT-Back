@@ -7,26 +7,31 @@
     <!-- Importing Materialize CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('fonts/custom-font.ttf') format('truetype');
+        }
+
         body {
-            background-color: #81d9ed; /* Dark background */
+            background-color: #81d9ed; /* Light blue background */
             color: #8c8c8c; /* Light grey text */
         }
         h1 {
             color: #8c8c8c; /* Light grey text */
         }
         table {
-            background-color: #6b6b73; /* Dark blue background */
+            background-color: #6b6b73; /* Dark grey background */
         }
         th {
-            background-color: #6b6b73; /* Medium blue background */
+            background-color: #6b6b73; /* Dark grey background */
             color: #ffffff; /* White text */
         }
         td {
-            background-color: #ffffff; /* Dark blue background */
-            color: #090909; /* Dark grey text */
+            background-color: #ffffff; /* White background */
+            color: #090909; /* Black text */
         }
         .btn-floating {
-            background-color: #05461f; /* Teal button background */
+            background-color: #05461f; /* Dark green background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -39,7 +44,19 @@
             width: 100px;
             cursor: pointer;
         }
-
+        .brand-logo {
+            font-family: 'CustomFont', sans-serif;
+            font-size: 3em; /* Adjust the size as needed */
+            font-style: italic; /* Make the text italic */
+            font-weight: bold; /* Make the text bold */
+        }
+        .responsive-table {
+            overflow-x: auto;
+            display: block;
+        }
+        .container {
+            max-width: 90%;
+        }
         @media screen and (max-width: 768px) {
             h1 {
                 font-size: 1.5em;
@@ -47,17 +64,23 @@
             table {
                 font-size: 0.8em;
             }
+            .brand-logo {
+                font-size: 2em; /* Adjust the size for mobile */
+            }
+            .nav-wrapper {
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <nav>
         <div class="nav-wrapper" style="background-color: #6b6b73;">
-            <a href="#" class="brand-logo center" style="font-family: 'CustomFont'; font-size: 6em; font-style: italic; font-weight: bold; " >gaPReport</a>
+            <a href="#" class="brand-logo center" style="font-family: 'CustomFont', sans-serif; font-size: 3em; font-style: italic; font-weight: bold;">gaPReport</a>
         </div>
     </nav>
     <div class="container">
-        <h1 class="center-align"> </h1>
+        <h1 class="center-align">Informes</h1>
         <div class="row">
             <table class="highlight responsive-table">
                 <thead>
