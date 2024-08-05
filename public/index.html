@@ -8,29 +8,41 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #000020; /* Fondo de la página */
+            background-color: #000020; /* Dark background */
+            color: #ffffff; /* White text */
+        }
+        h1 {
+            color: #9ce0db; /* Light teal text */
+        }
+        table {
+            background-color: #2f2c79; /* Medium blue background */
+        }
+        th {
+            background-color: #171a4a; /* Dark blue background */
+            color: #ffffff; /* White text */
+        }
+        td {
+            background-color: #2f2c79; /* Medium blue background */
+            color: #ffffff; /* White text */
+        }
+        .btn-floating {
+            background-color: #5dc1b9; /* Teal button background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn-floating img {
+            width: 24px;
+            height: 24px;
         }
         img {
             width: 100px;
-        }
-        .highlight th {
-            background-color: #171a4a; /* Encabezado */
-            color: #9ce0db; /* Texto del encabezado */
-        }
-        .highlight tr:nth-child(even) {
-            background-color: #5dc1b9; /* Filas pares */
-        }
-        .highlight tr:nth-child(odd) {
-            background-color: #2f2c79; /* Filas impares */
-        }
-        .highlight td {
-            color: white; /* Texto de las celdas */
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="center-align" style="color: #9ce0db;">Informes</h1>
+        <h1 class="center-align">Informes</h1>
         <div class="row">
             <table class="highlight responsive-table">
                 <thead>
@@ -50,23 +62,32 @@
     <!-- Importing Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
+        function isValidCoordinate(lat, lng) {
+            return !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+        }
+
         async function fetchInformes() {
             const response = await fetch('/informes');
             const informes = await response.json();
             const tableBody = document.getElementById('informes-table-body');
             informes.forEach(informe => {
+                const { timestamp, image_base64, latitude, longitude } = informe;
+                const lat = parseFloat(latitude);
+                const lng = parseFloat(longitude);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${informe.timestamp}</td>
-                    <td><img src="data:image/jpeg;base64,${informe.image_base64}" alt="Imagen del informe"></td>
-                    <td>${informe.latitude}</td>
-                    <td>${informe.longitude}</td>
+                    <td>${timestamp}</td>
+                    <td><img src="data:image/jpeg;base64,${image_base64}" alt="Imagen del informe"></td>
+                    <td>${latitude}</td>
+                    <td>${longitude}</td>
                     <td>
-                        <a class="btn-floating btn-small waves-effect waves-light teal" 
-                           href="https://www.google.com/maps/search/?api=1&query=${informe.latitude},${informe.longitude}" 
+                        ${isValidCoordinate(lat, lng) ? `
+                        <a class="btn-floating btn-small waves-effect waves-light" 
+                           href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" 
                            target="_blank">
-                            <i class="material-icons">place</i>
+                            <img src="path/to/your/location/icon.png" alt="Ubicación">
                         </a>
+                        ` : 'Coordenadas inválidas'}
                     </td>
                 `;
                 tableBody.appendChild(row);
