@@ -7,14 +7,30 @@
     <!-- Importing Materialize CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
+        body {
+            background-color: #000020; /* Fondo de la página */
+        }
         img {
             width: 100px;
+        }
+        .highlight th {
+            background-color: #171a4a; /* Encabezado */
+            color: #9ce0db; /* Texto del encabezado */
+        }
+        .highlight tr:nth-child(even) {
+            background-color: #5dc1b9; /* Filas pares */
+        }
+        .highlight tr:nth-child(odd) {
+            background-color: #2f2c79; /* Filas impares */
+        }
+        .highlight td {
+            color: white; /* Texto de las celdas */
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="center-align">Informes</h1>
+        <h1 class="center-align" style="color: #9ce0db;">Informes</h1>
         <div class="row">
             <table class="highlight responsive-table">
                 <thead>
@@ -23,6 +39,7 @@
                         <th>Imagen</th>
                         <th>Latitud</th>
                         <th>Longitud</th>
+                        <th>Ubicación</th>
                     </tr>
                 </thead>
                 <tbody id="informes-table-body">
@@ -44,6 +61,13 @@
                     <td><img src="data:image/jpeg;base64,${informe.image_base64}" alt="Imagen del informe"></td>
                     <td>${informe.latitude}</td>
                     <td>${informe.longitude}</td>
+                    <td>
+                        <a class="btn-floating btn-small waves-effect waves-light teal" 
+                           href="https://www.google.com/maps/search/?api=1&query=${informe.latitude},${informe.longitude}" 
+                           target="_blank">
+                            <i class="material-icons">place</i>
+                        </a>
+                    </td>
                 `;
                 tableBody.appendChild(row);
             });
