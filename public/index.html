@@ -4,35 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informes</title>
+    <!-- Importing Materialize CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
         img {
             width: 100px;
         }
     </style>
 </head>
 <body>
-    <h1>Informes</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Imagen</th>
-                <th>Latitud</th>
-                <th>Longitud</th>
-            </tr>
-        </thead>
-        <tbody id="informes-table-body">
-        </tbody>
-    </table>
+    <div class="container">
+        <h1 class="center-align">Informes</h1>
+        <div class="row">
+            <table class="highlight responsive-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Imagen</th>
+                        <th>Latitud</th>
+                        <th>Longitud</th>
+                    </tr>
+                </thead>
+                <tbody id="informes-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Importing Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
         async function fetchInformes() {
             const response = await fetch('/informes');
