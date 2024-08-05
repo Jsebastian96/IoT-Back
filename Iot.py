@@ -7,7 +7,7 @@ import base64
 from pymongo import MongoClient
 
 # URL de la cámara IP Webcam para capturar snapshots
-camera_ip = 'http://192.168.100.121:8080/shot.jpg'
+camera_ip = 'http://192.168.1.52:8080/shot.jpg'
 # Configuración del puerto serial para el ESP32
 serial_port = 'COM3'  # Cambia esto al puerto correcto
 baud_rate = 115200
